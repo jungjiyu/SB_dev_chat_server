@@ -4,8 +4,8 @@
 	- 넘어오는 memberId 의 갯수 따라 자동적으로 1:1 혹은 1:n 처리
 		- ex )
 		```json
-		{ "memberIds":[1,2] } 로 request 시 1:1 채팅 로직 적용
-		{ "memberIds":[1,2,3] } 로 request 시 그룹 채팅 로직 적용
+		{ "memberIds":[1,2] } // memberId 2개로 request ->  1:1 채팅 로직 적용
+		{ "memberIds":[1,2,3] } // memberId 3개이상으로 request -> 그룹 채팅 로직 적용
 		```
 
 - AuthService.getLoginMember 로직을 spring security 의 @AuthenticationPrincipal 로 대체
