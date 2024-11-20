@@ -1,13 +1,18 @@
-
 ## :interrobang:  수정 사항
 - 1:n 채팅방 생성 로직 추가
-- AuthService.getLoginMember 로직을 spring security 의 @AuthenticationPrincipal 로 대체
+	- 엔드포인트(path) 변경은 없음
+	- 넘어오는 memberId 의 갯수 따라 자동적으로 1:1 혹은 1:n 처리
+		- ex )
+		```json
+		{ "memberIds":[1,2] } 로 request 시 1:1 채팅 로직 적용
+		{ "memberIds":[1,2,3] } 로 request 시 그룹 채팅 로직 적용
+		```
 
+- AuthService.getLoginMember 로직을 spring security 의 @AuthenticationPrincipal 로 대체
 
 ## :white_check_mark: TO DO
 - Amazon MQ를 통한 rabbitMQ 도입
 
-  
 ## :construction: Commit Convention
 - add : 새로운 기능 추가
 - fix : 버그 수정
