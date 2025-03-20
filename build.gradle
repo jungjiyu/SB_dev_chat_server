@@ -28,6 +28,9 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server:3.3.4'
 //	implementation 'org.springframework.security:spring-security-messaging:6.3.3'
 
+	// firebase
+	implementation 'com.google.firebase:firebase-admin:9.2.0'
+	implementation 'com.fasterxml.jackson.core:jackson-core:2.16.1'
 
 
 	runtimeOnly 'org.postgresql:postgresql'

@@ -20,7 +20,10 @@ public enum ErrorCode {
     LOGIN_FAIL(400010, "Login Failed"),
 
     //Request Find Chat Room
-    PK_NUMBER_NOT_ENOUGH(400010, "Exactly two PKs are required to find chatting room number");
+    PK_NUMBER_NOT_ENOUGH(400010, "Exactly two PKs are required to find chatting room number"),
+
+    // FCM Error
+    FCM_SEND_FAIL(500001, "Failed to send FCM message");
 
 
     private Integer code;

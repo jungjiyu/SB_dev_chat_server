@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Chat Example</title>
+    <style>
+        #chat {
+            border: 1px solid #333;
+            height: 200px;
+            width: 300px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+<h2>WebSocket and STOMP Chat Client</h2>
+
+<label for="memberId">Member ID:</label>
+<input type="text" id="memberId" placeholder="Enter member ID" />
+<br><br>
+<label for="roomId">Room ID:</label>
+<input type="text" id="roomId" placeholder="Enter room ID" />
+<br><br>
+<label for="fcmToken">FCM Token:</label>
+<input type="text" id="fcmToken" placeholder="Enter FCM Token" />
+<br><br>
+
+<button onclick="connect()">Connect</button>
+<button onclick="disconnect()">Disconnect</button>
+<br><br>
+
+<div id="chat">Chat Messages:</div>
+<input type="text" id="message" placeholder="Enter message" />
+<button onclick="sendMessage()">Send Message</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+<script>
+    let stompClient = null;
+    let memberId = null;
+    let roomId = null;
+    let fcmToken = null;
+
+    function connect() {
+        memberId = document.getElementById("memberId").value;
+        roomId = document.getElementById("roomId").value;
+        fcmToken = document.getElementById("fcmToken").value;
+
+        if (!memberId || !roomId || !fcmToken) {
+            alert("Please enter Member ID, Room ID, and FCM Token!");
+            return;
+        }
+
+        const socket = new WebSocket("ws://localhost:8788/ws");
+        stompClient = Stomp.over(socket);
+
+        stompClient.connect({ memberId: memberId }, (frame) => {
+            console.log("Connected: " + frame);
+            document.getElementById("chat").innerHTML += `<p>Connected to room ${roomId} as member ${memberId}</p>`;
+
+            // Subscribe to the selected chatroom
+            stompClient.subscribe(`/sub/chatroom/${roomId}`, (message) => {
+                const messageBody = JSON.parse(message.body);
+                console.log("Received message:", messageBody);
+                showMessage(`Room ${roomId} - ${messageBody.message}`); // Display the message
+
+                // After receiving the message, send a push notification to the other user (via FCM)
+                sendFcmNotification(messageBody.message);
+            });
+        }, (error) => {
+            console.log("Connection error:", error);
+        });
+    }
+
+    function disconnect() {
+        if (stompClient !== null) {
+            stompClient.disconnect();
+        }
+        console.log("Disconnected");
+        document.getElementById("chat").innerHTML += "<p>Disconnected</p>";
+    }
+
+    function sendMessage() {
+        const message = document.getElementById("message").value;
+        if (message && stompClient) {
+            stompClient.send("/pub/message", {}, JSON.stringify({
+                senderId: memberId,
+                roomId: roomId,
+                message: message,
+                chatType: "TEXT"
+            }));
+            document.getElementById("message").value = "";
+        }
+    }
+
+    function showMessage(message) {
+        const chat = document.getElementById("chat");
+        chat.innerHTML += `<p>${message}</p>`;
+        chat.scrollTop = chat.scrollHeight; // Scroll to the bottom of the chat
+    }
+
+    function sendFcmNotification(message) {
+        fetch('http://localhost:8080/fcm/sendNotification', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                token: fcmToken,
+                title: "New Message",
+                body: message
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('FCM Notification sent:', data);
+        })
+        .catch((error) => {
+            console.error('Error sending FCM notification:', error);
+        });
+    }
+</script>
+</body>
+</html>

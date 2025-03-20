@@ -5,7 +5,6 @@ import com.chat.kit.api.request.RequestChatMessage;
 import com.chat.kit.api.response.ApiResponse;
 import com.chat.kit.api.response.common.ChatRoomListResponse;
 import com.chat.kit.api.response.common.ChatRoomMessagesResponse;
-import com.chat.kit.api.response.common.error.ErrorCode;
 import com.chat.kit.api.response.common.success.ResponseCode;
 import com.chat.kit.persistence.domain.ChatMessage;
 import com.chat.kit.persistence.domain.Member;
@@ -79,34 +78,6 @@ public class ChatController {
     @MessageMapping("/message")
     @Transactional
     public void receiveMessage(@RequestBody RequestChatMessage chat) {
-
-        // 메시지를 저장
-        ChatMessage chatMessage = chatService.saveMessage(chat);
-        // 메시지를 해당 채팅방 구독자들에게 전송
-        template.convertAndSend("/sub/chatroom/"+chat.getRoomId(), ChatRoomMessagesResponse.of(chatMessage));//현재 방에 들어와있는 사람
-
-        Set<Long> allChatMemberIds = memberChatRoomRepository.findByChatRoomId(chat.getRoomId()).stream()
-                .filter(mcr -> !mcr.getMember().getId().equals(chat.getSenderId()))
-                .map(mcr -> mcr.getMember().getId())
-                .collect(Collectors.toSet());
-
-        Set<Long> inChatRoomMemberIds = simpUserRegistry.getUsers().stream()
-                .filter(
-                        user -> user.getSessions().stream()
-                                .anyMatch(
-                                        session -> session.getSubscriptions().stream()
-                                                .anyMatch(sub -> sub.getDestination().equals("/sub/chatroom/"+chat.getRoomId()))
-                                )
-                )
-                .map(user -> Long.parseLong(user.getName()))
-                .collect(Collectors.toSet());
-
-        allChatMemberIds.removeAll(inChatRoomMemberIds);
-
-        // 상단 알림용
-        allChatMemberIds.forEach(memberId -> {
-            template.convertAndSend("/sub/myRoom/"+memberId, ChatRoomMessagesResponse.of(chatMessage));
-        });
-
+        chatService.receiveMessage(chat);
     }
 }

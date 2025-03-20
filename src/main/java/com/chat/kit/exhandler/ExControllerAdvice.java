@@ -1,6 +1,7 @@
 package com.chat.kit.exhandler;
 
 import com.chat.kit.api.response.common.error.ErrorCode;
+import com.chat.kit.customException.FcmException;
 import com.chat.kit.customException.NoChatRoomException;
 import com.chat.kit.customException.NoMemberException;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +25,13 @@ public class ExControllerAdvice {
         log.error("[exceptionHandler] ex", e);
         return new ErrorResult(ErrorCode.BAD_REQUEST, e.getMessage());
     }
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ExceptionHandler(FcmException.class)
+    public ErrorResult FcmExHandler(FcmException e) {
+        log.error("[exceptionHandler] FCM error", e);
+        return new ErrorResult(ErrorCode.FCM_SEND_FAIL, e.getMessage());
+    }
+
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler
     public ErrorResult exHandler(Exception e){
